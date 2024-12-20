@@ -1,5 +1,5 @@
 {
-	"name": "robot",
+	"name": "pedra-falante",
 	"version": "1.0.0",
 	"scripts": {
 		"start": "http-server ./ -p 8090 -c-1 -g",

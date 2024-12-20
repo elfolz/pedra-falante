@@ -3,7 +3,7 @@ self.addEventListener('install', event => {
 })
 
 self.addEventListener('fetch', event => {
-	event.respondWith(caches.open('robot').then(cache => {
+	event.respondWith(caches.open('pedra-falante').then(cache => {
 		return cache.match(event.request)
 		.then(cachedResponse => {
 			let cachedFile = cachedResponse?.clone().blob()
