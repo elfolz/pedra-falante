@@ -21,25 +21,22 @@ const dirLight2 = new THREE.DirectionalLight(0xFFFFFF, 1)
 const dirLight3 = new THREE.DirectionalLight(0xFFFFFF, 1)
 const gltfLoader = new GLTFLoader()
 const dracoLoader = new DRACOLoader()
-gltfLoader.setDRACOLoader(dracoLoader)
 const scene = new THREE.Scene()
 const controls = new OrbitControls(camera, renderer.domElement)
 const fpsLimit = 1 / 60
 
+var stone
 var clockDelta = 0
 var gameStarted = false
 var hasGreeting = false
 var isTalking = false
-var stone
-var audioContext
-var destination
-var voiceGain
-var stoneGain
-var voiceSrc
-var stoneSrc
-var stoneBuffer
 var loading = true
+var lock = false
+var increase = false
+var speakSize = 1
+var elapsedTime = 0
 
+gltfLoader.setDRACOLoader(dracoLoader)
 scene.background = null
 renderer.outputColorSpace = THREE.SRGBColorSpace
 renderer.sortObjects = false
@@ -49,8 +46,8 @@ scene.add(hemisphereLight)
 controls.screenSpacePanning = true
 controls.enableZoom = false
 dirLight1.position.set(0, 0, 0)
-dirLight2.position.set(10, 10, 10)
-dirLight3.position.set(-10, 10, 10)
+dirLight2.position.set(20, 0, 20)
+dirLight3.position.set(-20, 0, 20)
 scene.add(dirLight1)
 scene.add(dirLight2)
 scene.add(dirLight3)
@@ -64,7 +61,7 @@ function loadModel() {
 			dirLight2.target = stone
 			dirLight3.target = stone
 			scene.add(stone)
-			scene.layers.enable( 1 )
+			scene.layers.enable(1)
 		}, xhr => {
 			if (xhr.loaded >= xhr.total) initGame()
 		}, error => {
@@ -81,6 +78,10 @@ function initGame() {
 	document.querySelector('footer').style.removeProperty('display')
 	resizeScene()
 	animate()
+}
+
+function initAuio() {
+
 }
 
 function resizeScene() {
@@ -111,57 +112,35 @@ function updateMovement() {
 		}
 		stone.rotation.y += 0.05
 	}
+	if (!lock && (performance.now() - elapsedTime) > 500) {
+		elapsedTime = performance.now()
+		increase = false
+		lock = true
+	}
 	if (isTalking) {
-		if (performance.now() % 0.5 > 0 ) return
-		const scale = 1 + (Math.random() / 10)
-		stone.scale.set(scale, scale, scale)
+		if (!increase && stone.scale.x > 1) scaleStone()
+		else if (increase && stone.scale.x < speakSize) scaleStone(true)
+		if (increase && stone.scale.x >= speakSize || !increase && stone.scale.x <= 1) lock = false
+	} else if (stone.scale.x != 1) {
+		if (stone.scale.x > 1) scaleStone()
+		else scaleStone(true)
+	}
+}
+
+function scaleStone(grow) {
+	if (grow) {
+		stone.scale.x += 0.01
+		stone.scale.y += 0.01
+		stone.scale.z += 0.01
 	} else {
-		if (stone.scale.x > 1) {
-			stone.scale.set(stone.scale.x - 0.05,stone.scale.y - 0.05, stone.scale.z- 0.05)
-		}
+		stone.scale.x -= 0.01
+		stone.scale.y -= 0.01
+		stone.scale.z -= 0.01
 	}
 }
 
 function speak(text) {
 	if (!text) return
-	if (/edg/i.test(navigator.userAgent)) return localVoice(text)
-	naturalVoice(text)
-}
-
-function naturalVoice(text) {
-	fetch(`https://us-central1-stop-dbb76.cloudfunctions.net/api/naturalvoice`, {
-		method: 'POST',
-		body: text.trim()
-	})
-		.then(response => {
-			return response.arrayBuffer()
-		})
-		.then(buffer => {
-			if (document.hidden) return
-			return audioContext.decodeAudioData(buffer)
-				.then(audioData => {
-					isTalking = true
-					playstoneAudio()
-					animateTalk()
-					if (voiceSrc) voiceSrc.disconnect()
-					voiceSrc = audioContext.createBufferSource()
-					voiceSrc.buffer = audioData
-					voiceSrc.connect(voiceGain)
-					voiceSrc.start(0)
-					voiceSrc.onended = () => {
-						isTalking = false
-						voiceSrc.disconnect()
-						stoneSrc?.disconnect()
-						stoneSrc = undefined
-					}
-				})
-		})
-		.catch(error => {
-			localVoice(text)
-		})
-}
-
-function localVoice(text) {
 	if (!synth.voice) {
 		var voice
 		['antonio', 'daniel', 'reed', 'brasil'].some(el => {
@@ -172,12 +151,9 @@ function localVoice(text) {
 		synth.voice = voice
 	}
 	speechSynthesis.cancel()
-	synth.lang = synth.voice?.lang ?? 'pt-BR'
+	synth.lang = synth.voice?.lang || 'pt-BR'
 	synth.text = text.trim()
-	if (synth.voice?.name.toLocaleLowerCase().includes('daniel')) {
-		synth.pitch = 1.5
-		synth.rate = 1.5
-	}
+	if (synth.voice?.name.toLocaleLowerCase().includes('daniel')) synth.rate = 1.5
 	isTalking = true
 	speechSynthesis.speak(synth)
 }
@@ -185,7 +161,6 @@ function localVoice(text) {
 function talk(text) {
 	if (!text || loading) return
 	loading = true
-	playstoneAudio()
 	const url = ['localhost', '127.0.0.1'].includes(location.hostname) ? 'http://127.0.0.1:5001/stop-dbb76/us-central1/api/chatgpt' : 'https://us-central1-stop-dbb76.cloudfunctions.net/api/chatgpt'
 	fetch(url, {
 		method: 'POST',
@@ -201,8 +176,6 @@ function talk(text) {
 		.catch(e => {
 			isTalking = false
 			speechSynthesis.cancel()
-			voiceSrc?.disconnect()
-			stoneSrc?.disconnect()
 			speak(`Desculpe, minha licença do chatGPT expirou.`)
 			console.log(e)
 		})
@@ -214,44 +187,21 @@ function talk(text) {
 		})
 }
 
-function initAudio() {
-	audioContext = new AudioContext()
-	voiceGain = audioContext.createGain()
-	stoneGain = audioContext.createGain()
-	stoneGain.gain.value = 0.25
-	destination = audioContext.createMediaStreamDestination()
-	voiceGain.connect(audioContext.destination)
-	stoneGain.connect(audioContext.destination)
-	document.querySelector('audio').srcObject = destination.stream
-	document.querySelector('audio').play()
+synth.onboundary = () => {
+	if (lock) return
+	increase = !increase
+	if (increase) speakSize = 1 + (Math.random() * 0.15)
+	lock = true
 }
-
-function playstoneAudio() {
-	if (!audioContext || !stoneBuffer) return
-	if (stoneSrc) stoneSrc.disconnect()
-	stoneSrc = audioContext.createBufferSource()
-	stoneSrc.buffer = stoneBuffer
-	stoneSrc.loop = true
-	stoneSrc.connect(stoneGain)
-	stoneSrc.start(0)
-	stoneSrc.onended = () => {
-		stoneSrc?.disconnect()
-		stoneSrc = undefined
-	}
-}
-
 synth.onend = () => {
 	isTalking = false
-	stoneSrc?.disconnect()
 }
 synth.onpause = () => {
 	isTalking = false
-	stoneSrc?.disconnect()
 }
 synth.onerror = () => {
 	isTalking = false
 	speechSynthesis.cancel()
-	stoneSrc?.disconnect()
 }
 
 window.onresize = () => resizeScene()
@@ -267,7 +217,7 @@ document.onreadystatechange = () => {
 		document.querySelector('input').disabled = true
 	}
 	document.querySelector('input').onkeydown = e => {
-		if (e.keyCode != 13 || loading) return
+		if (e.code != 'Enter' || loading) return
 		talk(document.querySelector('input').value)
 		document.querySelector('input').disabled = true
 	}
@@ -275,15 +225,12 @@ document.onreadystatechange = () => {
 document.onvisibilitychange = () => {
 	if (!document.hidden) return
 	isTalking = false
-	voiceSrc?.disconnect()
-	stoneSrc?.disconnect()
 	speechSynthesis.cancel()
 	document.querySelector('input').value = null
 	document.querySelector('input').disabled = false
 }
 document.onclick = () => {
 	if (!gameStarted || hasGreeting) return
-	initAudio()
 	speak('Olá, eu sou o GP Treider. Para falar comigo, digite no campo abaixo.')
 	hasGreeting = true
 }
