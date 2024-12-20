@@ -188,7 +188,6 @@ function talk(text) {
 }
 
 synth.onboundary = () => {
-	if (lock) return
 	increase = !increase
 	if (increase) speakSize = 1 + (Math.random() * 0.15)
 	lock = true
