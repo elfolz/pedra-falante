@@ -1,7 +1,6 @@
 import * as THREE from './three.module.js'
 import { GLTFLoader } from './gltfLoader.module.js'
 import { DRACOLoader } from './dracoLoader.module.js'
-import { OrbitControls } from './orbitControls.js'
 
 if (location.protocol.startsWith('https')) {
 	navigator.serviceWorker.register('service-worker.js')
@@ -22,7 +21,6 @@ const dirLight3 = new THREE.DirectionalLight(0xFFFFFF, 1)
 const gltfLoader = new GLTFLoader()
 const dracoLoader = new DRACOLoader()
 const scene = new THREE.Scene()
-const controls = new OrbitControls(camera, renderer.domElement)
 const fpsLimit = 1 / 60
 
 var stone
@@ -43,8 +41,6 @@ renderer.sortObjects = false
 renderer.toneMapping = THREE.ACESFilmicToneMapping
 renderer.setClearColor(0x000000, 0)
 scene.add(hemisphereLight)
-controls.screenSpacePanning = true
-controls.enableZoom = false
 dirLight1.position.set(0, 0, 0)
 dirLight2.position.set(20, 0, 20)
 dirLight3.position.set(-20, 0, 20)
@@ -80,10 +76,6 @@ function initGame() {
 	animate()
 }
 
-function initAuio() {
-
-}
-
 function resizeScene() {
 	camera.aspect = window.visualViewport.width / window.visualViewport.height
 	camera.updateProjectionMatrix()
@@ -98,32 +90,27 @@ function animate() {
 	clockDelta += clock.getDelta()
 	if (fpsLimit && clockDelta < fpsLimit) return
 	renderer.render(scene, camera)
-	controls.update()
 	clockDelta = fpsLimit ? clockDelta % fpsLimit : clockDelta
 	updateMovement()
 }
 
 function updateMovement() {
 	if (!stone) return
-	if (loading) {
-		if (hasGreeting && (stone.rotation.y % 1) >= 0.5) {
-			stone.rotation.y = 0
-			loading = false
-		}
-		stone.rotation.y += 0.05
-	}
 	if (!lock && (performance.now() - elapsedTime) > 500) {
 		elapsedTime = performance.now()
 		increase = false
 		lock = true
 	}
 	if (isTalking) {
+		stone.rotation.y = 0
 		if (!increase && stone.scale.x > 1) scaleStone()
 		else if (increase && stone.scale.x < speakSize) scaleStone(true)
 		if (increase && stone.scale.x >= speakSize || !increase && stone.scale.x <= 1) lock = false
 	} else if (stone.scale.x != 1) {
 		if (stone.scale.x > 1) scaleStone()
 		else scaleStone(true)
+	} else {
+		stone.rotation.y += 0.01
 	}
 }
 
@@ -229,7 +216,7 @@ document.onvisibilitychange = () => {
 	document.querySelector('input').disabled = false
 }
 document.onclick = () => {
-	if (!gameStarted || hasGreeting) return
+	//if (!gameStarted || hasGreeting) return
 	speak('Olá, eu sou o GP Treider. Para falar comigo, digite no campo abaixo.')
 	hasGreeting = true
 }
