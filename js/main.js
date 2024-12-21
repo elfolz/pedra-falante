@@ -28,11 +28,17 @@ var clockDelta = 0
 var gameStarted = false
 var hasGreeting = false
 var isTalking = false
-var loading = true
+var loading = false
 var lock = false
 var increase = false
 var speakSize = 1
 var elapsedTime = 0
+var rotation = {
+	direction: 1,
+	orientation: 'x',
+	speed: 0.05,
+	cycle: 0
+}
 
 gltfLoader.setDRACOLoader(dracoLoader)
 scene.background = null
@@ -102,7 +108,7 @@ function updateMovement() {
 		lock = true
 	}
 	if (isTalking) {
-		stone.rotation.y = 0
+		stone.rotation.set(0, 0, 0)
 		if (!increase && stone.scale.x > 1) scaleStone()
 		else if (increase && stone.scale.x < speakSize) scaleStone(true)
 		if (increase && stone.scale.x >= speakSize || !increase && stone.scale.x <= 1) lock = false
@@ -110,7 +116,16 @@ function updateMovement() {
 		if (stone.scale.x > 1) scaleStone()
 		else scaleStone(true)
 	} else {
-		stone.rotation.y += 0.01
+		if (rotation.cycle >= Math.PI) {
+			rotation.orientation = Math.random() >=  0.5 ? 'y' : 'x'
+			rotation.direction = Math.random() >= 0.5 ? 1 : 0
+			rotation.cycle = 0
+		}
+		let speed = rotation.speed
+		if (rotation.direction != 1) speed *= -1
+		if (rotation.orientation == 'y') stone.rotation.y += speed
+		else stone.rotation.x += speed
+		rotation.cycle += rotation.speed
 	}
 }
 
