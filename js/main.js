@@ -65,7 +65,8 @@ function loadModel() {
 			scene.add(stone)
 			scene.layers.enable(1)
 		}, xhr => {
-			if (xhr.loaded >= xhr.total) initGame()
+			console.log(xhr)
+			if (xhr.loaded >= (xhr.total || 0)) initGame()
 		}, error => {
 			console.error(error)
 		}
