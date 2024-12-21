@@ -178,7 +178,7 @@ function talk(text) {
 		.catch(e => {
 			isTalking = false
 			speechSynthesis.cancel()
-			speak(`Desculpe, minha licença do chatGPT expirou.`)
+			speak(`Desculpe, minha licença do chat GPT expirou.`)
 			console.log(e)
 		})
 		.finally(() => {
@@ -231,8 +231,8 @@ document.onvisibilitychange = () => {
 	document.querySelector('input').disabled = false
 }
 document.onclick = () => {
-	//if (!gameStarted || hasGreeting) return
-	speak('Olá, eu sou o GP Treider. Para falar comigo, digite no campo abaixo.')
+	if (!gameStarted || hasGreeting) return
+	speak('Olá, eu sou a pedra falante. Para conversar comigo, digite no campo abaixo.')
 	hasGreeting = true
 }
 document.body.appendChild(renderer.domElement)
