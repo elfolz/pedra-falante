@@ -1,6 +1,6 @@
 {
-	"name": "Robô",
-	"short_name": "Robô",
+	"name": "Pedra falante",
+	"short_name": "Pedra falante",
 	"theme_color": "#121212",
 	"icons": [
 			{ "src": "./img/192x192.png", "sizes": "192x192", "type": "image/png" },
