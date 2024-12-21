@@ -189,6 +189,12 @@ function talk(text) {
 		})
 }
 
+function greetings() {
+	if (!gameStarted || hasGreeting) return
+	speak('Olá, eu sou a pedra falante. Para conversar comigo, digite no campo abaixo.')
+	hasGreeting = true
+}
+
 synth.onboundary = () => {
 	increase = !increase
 	if (increase) speakSize = 1 + (Math.random() * 0.15)
@@ -230,9 +236,7 @@ document.onvisibilitychange = () => {
 	document.querySelector('input').value = null
 	document.querySelector('input').disabled = false
 }
-document.onclick = () => {
-	if (!gameStarted || hasGreeting) return
-	speak('Olá, eu sou a pedra falante. Para conversar comigo, digite no campo abaixo.')
-	hasGreeting = true
-}
+document.onclick = () => greetings()
+document.ontouchend = () => greetings()
+
 document.body.appendChild(renderer.domElement)
