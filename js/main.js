@@ -65,7 +65,6 @@ function loadModel() {
 			scene.add(stone)
 			scene.layers.enable(1)
 		}, xhr => {
-			console.log(xhr)
 			if (xhr.loaded >= (xhr.total || 0)) initGame()
 		}, error => {
 			console.error(error)
@@ -146,7 +145,7 @@ function speak(text) {
 	if (!text) return
 	if (!synth.voice) {
 		var voice
-		['antonio', 'daniel', 'reed', 'brasil'].some(el => {
+		['antonio', 'daniel', 'reed', 'brasil', 'francisca'].some(el => {
 			voice = speechSynthesis.getVoices().find(_ => _.name.toLocaleLowerCase().includes(el.toLocaleLowerCase()) && _.lang.substring(0, 2).toLocaleLowerCase() == 'pt')
 			if (voice) return true
 		})
