@@ -127,6 +127,17 @@ function updateMovement() {
 		else stone.rotation.x += speed
 		rotation.cycle += rotation.speed
 	}
+	if (!lock && isChrome()) {
+		setTimeout(() => {
+			increase = !increase
+			if (increase) speakSize = 1 + (Math.random() * 0.15)
+			lock = true
+		}, rand(500, 1500))
+	}
+}
+
+function rand(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
 function scaleStone(grow) {
@@ -195,10 +206,16 @@ function greetings() {
 	hasGreeting = true
 }
 
-synth.onboundary = () => {
-	increase = !increase
-	if (increase) speakSize = 1 + (Math.random() * 0.15)
-	lock = true
+function isChrome() {
+	return navigator.userAgentData.brands.some(el => /chrome/i.test(el.brand))
+}
+
+if (!isChrome()) {
+	synth.onboundary = () => {
+		increase = !increase
+		if (increase) speakSize = 1 + (Math.random() * 0.15)
+		lock = true
+	}
 }
 synth.onend = () => {
 	isTalking = false
