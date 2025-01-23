@@ -127,8 +127,13 @@ function updateMovement() {
 		}
 		let speed = rotation.speed
 		if (rotation.direction != 1) speed *= -1
-		if (rotation.orientation == 'y') stone.rotation.y += speed
-		else stone.rotation.x += speed
+		if (rotation.orientation == 'y') {
+			stone.rotation.x = 0
+			stone.rotation.y += speed
+		} else {
+			stone.rotation.x += speed
+			stone.rotation.y = 0
+		}
 		rotation.cycle += rotation.speed
 	}
 	if (!lock && isChrome()) {
