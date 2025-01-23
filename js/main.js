@@ -194,7 +194,7 @@ function talk(text) {
 			isTalking = false
 			speechSynthesis.cancel()
 			speak(`Desculpe, minha licença do chat GPT expirou.`)
-			console.log(e)
+			console.error(e)
 		})
 		.finally(() => {
 			document.querySelector('input').disabled = false
@@ -211,7 +211,7 @@ function greetings() {
 }
 
 function isChrome() {
-	return navigator.userAgentData.brands.some(el => /chrome/i.test(el.brand))
+	return navigator.userAgentData?.brands.some(el => /chrome/i.test(el.brand))
 }
 
 function startListen() {
@@ -225,7 +225,7 @@ function startListen() {
 
 function stopListen() {
 	document.querySelector('#mic').classList.remove('listening')
-	recognition.stop()
+	recognition.abort()
 	isListening = false
 }
 
@@ -248,7 +248,8 @@ synth.onerror = () => {
 }
 
 recognition.onresult = e => {
-	document.querySelector('input').value = e.results[0][0].transcript
+	const result = e.results[0][0].transcript
+	document.querySelector('input').value = result
 }
 
 window.onresize = () => resizeScene()
