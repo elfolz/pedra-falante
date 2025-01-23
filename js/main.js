@@ -217,16 +217,12 @@ function isChrome() {
 
 function startListen() {
 	if (isListening) return
-	try {
-		recognition.abort()
-		speechSynthesis.cancel()
-		document.querySelector('#mic').classList.add('listening')
-		document.querySelector('input').value = ''
-		recognition.start()
-		isListening = true
-	} catch(e) {
-		console.log(e)
-	}
+	recognition.abort()
+	speechSynthesis.cancel()
+	document.querySelector('#mic').classList.add('listening')
+	document.querySelector('input').value = ''
+	recognition.start()
+	isListening = true
 }
 
 function stopListen() {
@@ -256,6 +252,10 @@ synth.onerror = () => {
 recognition.onresult = e => {
 	const result = e.results[0][0].transcript
 	document.querySelector('input').value = result
+}
+
+recognition.onerror = e => {
+	console.log(e)
 }
 
 window.onresize = () => resizeScene()
