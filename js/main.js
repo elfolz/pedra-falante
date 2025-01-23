@@ -238,6 +238,7 @@ if (!isChrome()) {
 		lock = true
 	}
 }
+
 synth.onend = () => {
 	isTalking = false
 }
@@ -249,14 +250,19 @@ synth.onerror = () => {
 	speechSynthesis.cancel()
 }
 
-recognition.onresult = e => {
+recognition.addEventListener('result', e => {
 	const result = e.results[0][0].transcript
 	document.querySelector('input').value = result
-}
+})
 
-recognition.onerror = e => {
-	console.log(e)
-}
+/* recognition.onresult = e => {
+	const result = e.results[0][0].transcript
+	document.querySelector('input').value = result
+} */
+
+/* recognition.onerror = e => {
+	console.onerror(e)
+} */
 
 window.onresize = () => resizeScene()
 window.visualViewport.onresize = () => resizeScene()
@@ -276,8 +282,8 @@ document.onreadystatechange = () => {
 		document.querySelector('input').disabled = true
 	}
 	document.querySelector('#mic').onmousedown = () => startListen()
-	document.querySelector('#mic').onmouseup = () => stopListen()
 	document.querySelector('#mic').ontouchstart = () => startListen()
+	document.querySelector('#mic').onmouseup = () => stopListen()
 	document.querySelector('#mic').ontouchend = () => stopListen()
 }
 document.onvisibilitychange = () => {
