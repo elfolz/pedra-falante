@@ -11,8 +11,6 @@ if (location.protocol.startsWith('https')) {
 }
 
 const recognition = new webkitSpeechRecognition()
-recognition.interimResults = true
-recognition.continuous = true
 recognition.lang = 'pt-BR'
 const synth = new SpeechSynthesisUtterance()
 const clock = new THREE.Clock()
@@ -185,24 +183,24 @@ function talk(text) {
 		headers: { 'content-type': 'application/json' },
 		body: JSON.stringify({ text: text.trim() })
 	})
-		.then(response => {
-			return response.json()
-		})
-		.then(json => {
-			speak(json.choices[0].message.content)
-		})
-		.catch(e => {
-			isTalking = false
-			speechSynthesis.cancel()
-			speak(`Desculpe, minha licença do chat GPT expirou.`)
-			console.error(e)
-		})
-		.finally(() => {
-			document.querySelector('input').disabled = false
-			document.querySelector('input').value = null
-			document.querySelector('input').focus()
-			loading = false
-		})
+	.then(response => {
+		return response.json()
+	})
+	.then(json => {
+		speak(json.choices[0].message.content)
+	})
+	.catch(e => {
+		isTalking = false
+		speechSynthesis.cancel()
+		speak(`Desculpe, minha licença do chat GPT expirou.`)
+		console.error(e)
+	})
+	.finally(() => {
+		document.querySelector('input').disabled = false
+		document.querySelector('input').value = null
+		document.querySelector('input').focus()
+		loading = false
+	})
 }
 
 function greetings() {
@@ -231,6 +229,21 @@ function stopListen() {
 	isListening = false
 }
 
+function toggleListener() {
+	if (isListening) {
+		document.querySelector('#mic').classList.remove('listening')
+		recognition.abort()
+		isListening = false
+	} else {
+		recognition.abort()
+		speechSynthesis.cancel()
+		document.querySelector('#mic').classList.add('listening')
+		document.querySelector('input').value = ''
+		recognition.start()
+		isListening = true
+	}
+}
+
 if (!isChrome()) {
 	synth.onboundary = () => {
 		increase = !increase
@@ -250,19 +263,10 @@ synth.onerror = () => {
 	speechSynthesis.cancel()
 }
 
-recognition.addEventListener('result', e => {
+recognition.onresult = e => {
 	const result = e.results[0][0].transcript
 	document.querySelector('input').value = result
-})
-
-/* recognition.onresult = e => {
-	const result = e.results[0][0].transcript
-	document.querySelector('input').value = result
-} */
-
-/* recognition.onerror = e => {
-	console.onerror(e)
-} */
+}
 
 window.onresize = () => resizeScene()
 window.visualViewport.onresize = () => resizeScene()
@@ -281,10 +285,11 @@ document.onreadystatechange = () => {
 		talk(document.querySelector('input').value)
 		document.querySelector('input').disabled = true
 	}
-	document.querySelector('#mic').onmousedown = () => startListen()
+	/* document.querySelector('#mic').onmousedown = () => startListen()
 	document.querySelector('#mic').ontouchstart = () => startListen()
 	document.querySelector('#mic').onmouseup = () => stopListen()
-	document.querySelector('#mic').ontouchend = () => stopListen()
+	document.querySelector('#mic').ontouchend = () => stopListen() */
+	document.querySelector('#mic').onclick = () => toggleListener()
 }
 document.onvisibilitychange = () => {
 	if (!document.hidden) return
