@@ -13,6 +13,7 @@ if (location.protocol.startsWith('https')) {
 const recognition = new webkitSpeechRecognition()
 recognition.interimResults = true
 recognition.continuous = true
+recognition.lang = 'pt-BR'
 const synth = new SpeechSynthesisUtterance()
 const clock = new THREE.Clock()
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
@@ -211,14 +212,15 @@ function greetings() {
 }
 
 function isChrome() {
-	return navigator.userAgentData?.brands.some(el => /chrome/i.test(el.brand))
+	return navigator.userAgentData?.brands.some(el => /chrome/i.test(el.brand)) ?? false
 }
 
 function startListen() {
 	if (isListening) return
+	recognition.abort()
+	speechSynthesis.cancel()
 	document.querySelector('#mic').classList.add('listening')
 	document.querySelector('input').value = ''
-	speechSynthesis.cancel()
 	recognition.start()
 	isListening = true
 }
@@ -270,8 +272,8 @@ document.onreadystatechange = () => {
 		document.querySelector('input').disabled = true
 	}
 	document.querySelector('#mic').onmousedown = () => startListen()
-	document.querySelector('#mic').ontouchstart = () => startListen()
 	document.querySelector('#mic').onmouseup = () => stopListen()
+	document.querySelector('#mic').ontouchstart = () => startListen()
 	document.querySelector('#mic').ontouchend = () => stopListen()
 }
 document.onvisibilitychange = () => {
