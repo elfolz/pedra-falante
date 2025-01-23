@@ -28,7 +28,7 @@ body {
 	height: 100vh;
 }
 body.loaded {
-	background: linear-gradient(#0131ff, #121212, #0131ff);
+	background: linear-gradient(#ff6200, #121212, #ff6200);
 }
 canvas {
 	position: fixed;
