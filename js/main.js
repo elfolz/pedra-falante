@@ -10,6 +10,9 @@ if (location.protocol.startsWith('https')) {
 	}
 }
 
+const recognition = new webkitSpeechRecognition()
+recognition.interimResults = true
+recognition.continuous = true
 const synth = new SpeechSynthesisUtterance()
 const clock = new THREE.Clock()
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
@@ -33,6 +36,7 @@ var lock = false
 var increase = false
 var speakSize = 1
 var elapsedTime = 0
+var isListening  = false
 var rotation = {
 	direction: 1,
 	orientation: 'x',
@@ -202,12 +206,27 @@ function talk(text) {
 
 function greetings() {
 	if (!gameStarted || hasGreeting) return
-	speak('Olá, eu sou a pedra falante. Para conversar comigo, digite no campo abaixo.')
+	speak('Olá, eu sou a pedra falante. Para conversar comigo, digite no campo abaixo, ou fale pelo microfone.')
 	hasGreeting = true
 }
 
 function isChrome() {
 	return navigator.userAgentData.brands.some(el => /chrome/i.test(el.brand))
+}
+
+function startListen() {
+	if (isListening) return
+	document.querySelector('#mic').classList.add('listening')
+	document.querySelector('input').value = ''
+	speechSynthesis.cancel()
+	recognition.start()
+	isListening = true
+}
+
+function stopListen() {
+	document.querySelector('#mic').classList.remove('listening')
+	recognition.stop()
+	isListening = false
 }
 
 if (!isChrome()) {
@@ -228,6 +247,10 @@ synth.onerror = () => {
 	speechSynthesis.cancel()
 }
 
+recognition.onresult = e => {
+	document.querySelector('input').value = e.results[0][0].transcript
+}
+
 window.onresize = () => resizeScene()
 window.visualViewport.onresize = () => resizeScene()
 window.visualViewport.onscroll = () => resizeScene()
@@ -245,6 +268,10 @@ document.onreadystatechange = () => {
 		talk(document.querySelector('input').value)
 		document.querySelector('input').disabled = true
 	}
+	document.querySelector('#mic').onmousedown = () => startListen()
+	document.querySelector('#mic').ontouchstart = () => startListen()
+	document.querySelector('#mic').onmouseup = () => stopListen()
+	document.querySelector('#mic').ontouchend = () => stopListen()
 }
 document.onvisibilitychange = () => {
 	if (!document.hidden) return
@@ -257,3 +284,4 @@ document.onclick = () => greetings()
 document.ontouchend = () => greetings()
 
 document.body.appendChild(renderer.domElement)
+document.body.oncontextmenu = () => { return false }

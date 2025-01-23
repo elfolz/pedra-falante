@@ -71,6 +71,10 @@ button {
 	border-radius: 50%;
 	background-color: #121212;
 	cursor: pointer;
+	transition: all 250ms ease-in-out;
+}
+button.listening {
+	background-color: #3cb371;
 }
 button svg {
 	position: absolute;
