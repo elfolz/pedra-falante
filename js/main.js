@@ -12,6 +12,7 @@ if (location.protocol.startsWith('https')) {
 
 const recognition = new webkitSpeechRecognition()
 recognition.lang = 'pt-BR'
+recognition.continuous = true
 const synth = new SpeechSynthesisUtterance()
 const clock = new THREE.Clock()
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
@@ -229,14 +230,15 @@ function stopListen() {
 	isListening = false
 }
 
-function toggleListener() {
+function toggleListener(e) {
+	e.stopPropagation()
+	speechSynthesis.cancel()
 	if (isListening) {
 		document.querySelector('#mic').classList.remove('listening')
 		recognition.abort()
 		isListening = false
 	} else {
 		recognition.abort()
-		speechSynthesis.cancel()
 		document.querySelector('#mic').classList.add('listening')
 		document.querySelector('input').value = ''
 		recognition.start()
@@ -264,8 +266,17 @@ synth.onerror = () => {
 }
 
 recognition.onresult = e => {
-	const result = e.results[0][0].transcript
+	let result = ''
+	for (let i in e.results) {
+		for (let j in e.results[i]) {
+			result += e.results[i][j].transcript ?? ''
+		}
+	}
 	document.querySelector('input').value = result
+}
+
+recognition.onspeechend = () => {
+	stopListen()
 }
 
 window.onresize = () => resizeScene()
@@ -289,7 +300,7 @@ document.onreadystatechange = () => {
 	document.querySelector('#mic').ontouchstart = () => startListen()
 	document.querySelector('#mic').onmouseup = () => stopListen()
 	document.querySelector('#mic').ontouchend = () => stopListen() */
-	document.querySelector('#mic').onclick = () => toggleListener()
+	document.querySelector('#mic').onclick = e => toggleListener(e)
 }
 document.onvisibilitychange = () => {
 	if (!document.hidden) return
