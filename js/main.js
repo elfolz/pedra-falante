@@ -211,7 +211,7 @@ function talk(text) {
 
 function greetings() {
 	if (!gameStarted || hasGreeting) return
-	speak('Olá, eu sou a pedra falante. Para conversar comigo, digite no campo abaixo, ou fale pelo microfone.')
+	//speak('Olá, eu sou a pedra falante. Para conversar comigo, digite no campo abaixo, ou fale pelo microfone.')
 	hasGreeting = true
 }
 
@@ -221,6 +221,7 @@ function isChrome() {
 
 function startListen() {
 	if (isListening) return
+	try { navigator.vibrate(100) } catch(e) {}
 	recognition.abort()
 	speechSynthesis.cancel()
 	document.querySelector('#mic').classList.add('listening')
@@ -230,6 +231,8 @@ function startListen() {
 }
 
 function stopListen() {
+	if (!isListening) return
+	try { navigator.vibrate(100) } catch(e) {}
 	document.querySelector('#mic').classList.remove('listening')
 	recognition.abort()
 	isListening = false
@@ -237,18 +240,8 @@ function stopListen() {
 
 function toggleListener(e) {
 	e.stopPropagation()
-	speechSynthesis.cancel()
-	if (isListening) {
-		document.querySelector('#mic').classList.remove('listening')
-		recognition.abort()
-		isListening = false
-	} else {
-		recognition.abort()
-		document.querySelector('#mic').classList.add('listening')
-		document.querySelector('input').value = ''
-		recognition.start()
-		isListening = true
-	}
+	if (isListening) stopListen()
+	else startListen()
 }
 
 if (!isChrome()) {
@@ -318,4 +311,4 @@ document.onclick = () => greetings()
 document.ontouchend = () => greetings()
 
 document.body.appendChild(renderer.domElement)
-document.body.oncontextmenu = () => { return false }
+//document.body.oncontextmenu = () => { return false }
